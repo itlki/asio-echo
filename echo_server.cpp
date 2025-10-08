@@ -1,11 +1,10 @@
-#include <print>
+#include <cstdio>
 #include <memory>
 #include <asio.hpp>
 
 using asio::ip::tcp;
-using std::println;
 
-const size_t port = 6969;
+const size_t port = 6970;
 asio::io_context io;
 asio::ip::tcp::acceptor server(io, tcp::endpoint(tcp::v4(), port));
 
@@ -19,22 +18,32 @@ public:
     asio::streambuf buffer;
 };
 
-void handle_request(const std::error_code& ec, tcp::socket socket) {
+void handle_request(const std::error_code& error, tcp::socket socket) {
     server.async_accept(io, &handle_request); // The Loop
+
+    if (error) {
+        printf("Error while accepting: %s\n", error.message().c_str());
+        return;
+    }
 
     auto request = std::make_shared<Request>(std::move(socket));
 
-    auto ep = request->socket.remote_endpoint();
-    println("Accepted connection {}", ep.address().to_string());
+    printf("Accepted connection\n");
 
     asio::async_read_until(request->socket, request->buffer, '\n',
         [request](const auto &error, size_t bytes_transferred) {
-            auto ep = request->socket.remote_endpoint();
-            println("Received {} bytes from {}", bytes_transferred, ep.address().to_string());
+            if (error) {
+                printf("Error while reading: %s\n", error.message().c_str());
+                return;
+            }
+            printf("Received %zu bytes\n", bytes_transferred);
             asio::async_write(request->socket, request->buffer,
                 [request](const auto &error, size_t bytes_transferred) {
-                    auto ep = request->socket.remote_endpoint();
-                    println("Sent {} bytes to {}", bytes_transferred, ep.address().to_string());
+                    if (error) {
+                        printf("Error while writing: %s\n", error.message().c_str());
+                        return;
+                    }
+                    printf("Sent %zu bytes\n", bytes_transferred);
                 });
         });
 }
@@ -43,14 +52,14 @@ int main()
 {
     size_t seconds = 5;
     asio::steady_timer t(io, asio::chrono::seconds(seconds));
-    println("Waiting for {} seconds", seconds);
+    printf("Waiting for %zu seconds\n", seconds);
     t.async_wait([seconds](const std::error_code &e) {
-        println("------------------------------");
-        println("Done waiting {} seconds. Error: {}", seconds, e.message());
-        println("------------------------------");
+        printf("------------------------------\n");
+        printf("Done waiting %zu seconds. Error: %s\n", seconds, e.message().c_str());
+        printf("------------------------------\n");
     });
 
-    println("Listening too 127.0.0.1:{}", port);
+    printf("Listening too 127.0.0.1:%zu\n", port);
     server.async_accept(io, &handle_request);
     io.run();
 

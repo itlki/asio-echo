@@ -1,4 +1,4 @@
-#include <print>
+#include <cstdio>
 #include <system_error>
 #include <vector>
 
@@ -12,9 +12,9 @@ int main()
 
     for (size_t i = 0; i < 5; ++i) {
         asio::steady_timer t(io, asio::chrono::seconds(i));
-        std::println("Waiting for {} seconds", i);
+        printf("Waiting for %zu seconds\n", i);
         t.async_wait([i](const std::error_code &e) {
-            std::println("Done waiting {} seconds! Error code: {}", i, e.message());
+            printf("Done waiting %zu seconds! Error: %s", i, e.message().c_str());
         });
         timers.push_back(std::move(t));
     }
