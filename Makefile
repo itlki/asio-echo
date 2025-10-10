@@ -1,6 +1,9 @@
-CXXFLAGS=-std=c++20 -Wall -Wextra
+CXXFLAGS=-std=c++23 -Wall -Wextra
 
-all: echo_server timers_example
+all: echo_co_server echo_server timers_example
+
+echo_co_server: echo_co_server.cpp
+	g++ $(CXXFLAGS) -o echo_co_server echo_co_server.cpp
 
 echo_server: echo_server.cpp
 	g++ $(CXXFLAGS) -o echo_server echo_server.cpp
