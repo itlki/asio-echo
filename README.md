@@ -21,3 +21,9 @@ hello
 hello
 $
 ```
+
+## Screencast
+
+This project was originally started on a livestream:
+
+[![thumbnail](./thumbnail.png)](https://www.youtube.com/watch?v=aBYqGD41E9g)
