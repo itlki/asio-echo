@@ -4,7 +4,6 @@
 using asio::ip::tcp;
 
 const size_t port = 6970;
-asio::io_context io;
 
 asio::awaitable<void> echo(tcp::socket socket)
 {
@@ -18,14 +17,15 @@ asio::awaitable<void> echo(tcp::socket socket)
 asio::awaitable<void> accept_loop(tcp::acceptor server)
 {
     while (true) {
-        tcp::socket socket = co_await server.async_accept(io, asio::use_awaitable);
+        tcp::socket socket = co_await server.async_accept(server.get_executor(), asio::use_awaitable);
         std::println("Connection accepted");
-        asio::co_spawn(io, echo(std::move(socket)), asio::detached);
+        asio::co_spawn(server.get_executor(), echo(std::move(socket)), asio::detached);
     }
 }
 
 int main()
 {
+    asio::io_context io;
     tcp::acceptor server(io, tcp::endpoint(tcp::v4(), port));
     asio::co_spawn(io, accept_loop(std::move(server)), asio::detached);
     std::println("Listening to 0.0.0.0:{}", port);
